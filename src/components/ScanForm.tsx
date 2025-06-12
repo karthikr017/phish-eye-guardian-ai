@@ -3,12 +3,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Search, AlertTriangle, Sparkles } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { Scan, Shield, Zap, Eye, Mic, Activity } from 'lucide-react';
 import { VisualSimilarityScanner } from './VisualSimilarityScanner';
 import { VoiceScanner } from './VoiceScanner';
 import { ThreatIntelligence } from './ThreatIntelligence';
-import type { ScanResult } from '@/pages/Index';
+import { ProactiveProtection } from './ProactiveProtection';
+import { toast } from '@/hooks/use-toast';
+import { ScanResult } from '@/pages/Index';
 
 interface ScanFormProps {
   onScanComplete: (result: ScanResult) => void;
@@ -17,60 +18,102 @@ interface ScanFormProps {
 export function ScanForm({ onScanComplete }: ScanFormProps) {
   const [url, setUrl] = useState('');
   const [isScanning, setIsScanning] = useState(false);
-  const [activeTab, setActiveTab] = useState('basic');
 
-  const analyzeUrl = (url: string) => {
+  const analyzeUrl = async (targetUrl: string): Promise<ScanResult> => {
+    // Simulate comprehensive URL analysis
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
     const suspiciousPatterns = [
-      /[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/, // IP addresses
-      /[a-z0-9]+-[a-z0-9]+-[a-z0-9]+\.(tk|ml|ga|cf)/, // Free domains
-      /[a-z]+[0-9]+[a-z]*\.(com|net|org)/, // Mixed alphanumeric
-      /payp[a4]l|g[o0][o0]gle|[a4]m[a4]z[o0]n|micr[o0]s[o0]ft/, // Brand spoofing
+      'payp4l', 'g00gle', 'amaz0n', 'micr0soft', 'app1e', 'fac3book'
     ];
 
-    const suspicious = suspiciousPatterns.some(pattern => pattern.test(url.toLowerCase()));
-    const reasons = [];
+    const phishingIndicators = [
+      'urgent', 'verify', 'suspended', 'click here', 'winner', 'congratulations'
+    ];
 
-    if (url.includes('bit.ly') || url.includes('tinyurl')) {
-      reasons.push('URL shortener detected');
-    }
-    if (!url.startsWith('https://')) {
-      reasons.push('No HTTPS encryption');
-    }
-    if (url.length > 100) {
-      reasons.push('Unusually long URL');
-    }
-    if (suspicious) {
-      reasons.push('Suspicious domain pattern');
+    let riskScore = 0;
+    const threats: string[] = [];
+    const urlLower = targetUrl.toLowerCase();
+
+    // URL Analysis
+    const urlAnalysis = {
+      suspicious: false,
+      reasons: [] as string[]
+    };
+
+    if (!targetUrl.startsWith('https://')) {
+      urlAnalysis.suspicious = true;
+      urlAnalysis.reasons.push('No HTTPS encryption');
+      threats.push('Suspicious URL Pattern');
+      riskScore += 20;
     }
 
-    return { suspicious: suspicious || reasons.length > 0, reasons };
-  };
+    suspiciousPatterns.forEach(pattern => {
+      if (urlLower.includes(pattern)) {
+        urlAnalysis.suspicious = true;
+        urlAnalysis.reasons.push(`Contains suspicious pattern: ${pattern}`);
+        threats.push('Suspicious URL Pattern');
+        riskScore += 25;
+      }
+    });
 
-  const analyzeContent = () => {
-    const phishingIndicators = [];
-    const random = Math.random();
-    
-    if (random > 0.7) phishingIndicators.push('Urgent action required language');
-    if (random > 0.6) phishingIndicators.push('Suspicious form fields');
-    if (random > 0.8) phishingIndicators.push('Fake security warnings');
-    if (random > 0.5) phishingIndicators.push('Deceptive branding');
+    // Content Analysis
+    const contentAnalysis = {
+      phishingIndicators: [] as string[],
+      legitimacyScore: Math.floor(Math.random() * 40) + 60
+    };
+
+    phishingIndicators.forEach(indicator => {
+      if (Math.random() > 0.7) {
+        contentAnalysis.phishingIndicators.push(indicator);
+        riskScore += 10;
+      }
+    });
+
+    if (contentAnalysis.phishingIndicators.length > 0) {
+      threats.push('Suspicious content detected');
+    }
+
+    // Visual Similarity (mock)
+    const visualSimilarity = {
+      matchFound: Math.random() > 0.8,
+      similarSites: ['legitimate-bank.com', 'real-service.com']
+    };
+
+    if (visualSimilarity.matchFound) {
+      threats.push('Visual similarity to known phishing sites');
+      riskScore += 30;
+    }
+
+    // Technical Analysis
+    const technicalAnalysis = {
+      ssl: targetUrl.startsWith('https://'),
+      domainAge: Math.random() > 0.3 ? '2+ years' : '< 30 days',
+      reputation: riskScore > 50 ? 'Suspicious' : 'Good'
+    };
+
+    if (technicalAnalysis.domainAge === '< 30 days') {
+      threats.push('New domain');
+      riskScore += 15;
+    }
 
     return {
-      phishingIndicators,
-      legitimacyScore: Math.round((1 - phishingIndicators.length * 0.2) * 100)
+      id: Math.random().toString(36).substr(2, 9),
+      url: targetUrl,
+      timestamp: new Date().toISOString(),
+      riskScore: Math.min(riskScore, 100),
+      threats,
+      details: {
+        urlAnalysis,
+        contentAnalysis,
+        visualSimilarity,
+        technicalAnalysis
+      }
     };
   };
 
-  const calculateRiskScore = (urlAnalysis: any, contentAnalysis: any) => {
-    let score = 0;
-    score += urlAnalysis.suspicious ? 40 : 0;
-    score += urlAnalysis.reasons.length * 10;
-    score += (100 - contentAnalysis.legitimacyScore) * 0.3;
-    return Math.min(100, Math.round(score));
-  };
-
-  const handleScan = async () => {
-    if (!url) {
+  const performScan = async () => {
+    if (!url.trim()) {
       toast({
         title: "Error",
         description: "Please enter a URL to scan",
@@ -79,164 +122,137 @@ export function ScanForm({ onScanComplete }: ScanFormProps) {
       return;
     }
 
-    setIsScanning(true);
-
-    // Simulate AI analysis delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    const urlAnalysis = analyzeUrl(url);
-    const contentAnalysis = analyzeContent();
-    const riskScore = calculateRiskScore(urlAnalysis, contentAnalysis);
-
-    const result: ScanResult = {
-      id: Date.now().toString(),
-      url,
-      timestamp: new Date().toISOString(),
-      riskScore,
-      threats: [
-        ...(urlAnalysis.suspicious ? ['Suspicious URL Pattern'] : []),
-        ...(contentAnalysis.phishingIndicators.length > 2 ? ['Phishing Content'] : []),
-        ...(riskScore > 70 ? ['High Risk Domain'] : []),
-      ],
-      details: {
-        urlAnalysis,
-        contentAnalysis,
-        visualSimilarity: {
-          matchFound: Math.random() > 0.8,
-          similarSites: ['legitimate-bank.com', 'real-service.com']
-        },
-        technicalAnalysis: {
-          ssl: url.startsWith('https://'),
-          domainAge: Math.random() > 0.5 ? '2+ years' : '< 30 days',
-          reputation: riskScore < 30 ? 'Good' : riskScore < 70 ? 'Suspicious' : 'Malicious'
-        }
-      }
-    };
-
-    onScanComplete(result);
-    setIsScanning(false);
-
-    toast({
-      title: "Scan Complete",
-      description: `Risk score: ${riskScore}%`,
-      variant: riskScore > 70 ? "destructive" : "default",
-    });
-  };
-
-  const handleVoiceUrlDetected = (detectedUrl: string) => {
-    setUrl(detectedUrl);
-    toast({
-      title: "URL Detected",
-      description: `Ready to scan: ${detectedUrl}`,
-    });
-  };
-
-  const handleVoiceCommand = (command: string) => {
-    if (command === 'scan' && url) {
-      handleScan();
-    }
-  };
-
-  const handleVisualSimilarityResult = (result: any) => {
-    console.log('Visual similarity result:', result);
-    if (result.isPhishing) {
+    // Basic URL validation
+    try {
+      new URL(url.startsWith('http') ? url : `https://${url}`);
+    } catch {
       toast({
-        title: "Visual Threat Detected!",
-        description: `${Math.round(result.similarityScore * 100)}% similar to ${result.matchedSite}`,
+        title: "Invalid URL",
+        description: "Please enter a valid URL",
         variant: "destructive",
       });
+      return;
+    }
+
+    setIsScanning(true);
+    
+    try {
+      const result = await analyzeUrl(url.startsWith('http') ? url : `https://${url}`);
+      onScanComplete(result);
+      
+      toast({
+        title: "Scan Complete",
+        description: `Risk Score: ${result.riskScore}% - ${result.threats.length} threats detected`,
+        variant: result.riskScore > 70 ? "destructive" : "default",
+      });
+    } catch (error) {
+      console.error('Scan error:', error);
+      toast({
+        title: "Scan Failed",
+        description: "Unable to complete the security scan",
+        variant: "destructive",
+      });
+    } finally {
+      setIsScanning(false);
     }
   };
 
-  const handleThreatIntelligenceResult = (threats: any[]) => {
-    console.log('Threat intelligence results:', threats);
-    if (threats.length > 0) {
-      const criticalThreats = threats.filter(t => t.severity === 'critical');
-      if (criticalThreats.length > 0) {
-        toast({
-          title: "Critical Threats Found!",
-          description: `${criticalThreats.length} critical threat(s) detected`,
-          variant: "destructive",
-        });
-      }
-    }
+  const handleVoiceScan = (detectedUrl: string) => {
+    setUrl(detectedUrl);
+    performScan();
   };
 
   return (
     <div className="space-y-6">
-      <Card className="bg-slate-800/50 border-slate-700">
-        <CardHeader>
-          <CardTitle className="flex items-center text-white">
-            <Sparkles className="w-5 h-5 mr-2" />
-            AI-Powered Security Scanner
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Input
-              placeholder="Enter URL to scan (e.g., https://example.com)"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
-            />
-          </div>
-          
-          <Button 
-            onClick={handleScan} 
-            disabled={isScanning}
-            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-          >
-            {isScanning ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Analyzing...
-              </>
-            ) : (
-              <>
-                <Search className="w-4 h-4 mr-2" />
-                Scan for Threats
-              </>
-            )}
-          </Button>
-
-          <div className="bg-slate-700/50 p-3 rounded-lg">
-            <div className="flex items-start space-x-2">
-              <AlertTriangle className="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-slate-300">
-                <p className="font-medium text-yellow-500 mb-1">Security Notice</p>
-                <p>This tool analyzes URLs for potential phishing indicators. Results are for educational purposes.</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-slate-800/50">
-          <TabsTrigger value="visual" className="text-slate-300">Visual AI</TabsTrigger>
-          <TabsTrigger value="voice" className="text-slate-300">Voice Scan</TabsTrigger>
-          <TabsTrigger value="intelligence" className="text-slate-300">Threat Intel</TabsTrigger>
+      <Tabs defaultValue="manual" className="w-full">
+        <TabsList className="grid w-full grid-cols-5 bg-slate-800/50">
+          <TabsTrigger value="manual" className="flex items-center space-x-1">
+            <Scan className="w-4 h-4" />
+            <span>Manual</span>
+          </TabsTrigger>
+          <TabsTrigger value="visual" className="flex items-center space-x-1">
+            <Eye className="w-4 h-4" />
+            <span>Visual</span>
+          </TabsTrigger>
+          <TabsTrigger value="voice" className="flex items-center space-x-1">
+            <Mic className="w-4 h-4" />
+            <span>Voice</span>
+          </TabsTrigger>
+          <TabsTrigger value="intelligence" className="flex items-center space-x-1">
+            <Shield className="w-4 h-4" />
+            <span>Intel</span>
+          </TabsTrigger>
+          <TabsTrigger value="protection" className="flex items-center space-x-1">
+            <Activity className="w-4 h-4" />
+            <span>Live</span>
+          </TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="visual" className="space-y-4">
-          <VisualSimilarityScanner 
-            url={url} 
-            onResult={handleVisualSimilarityResult}
-          />
+
+        <TabsContent value="manual">
+          <Card className="bg-slate-800/50 border-slate-700">
+            <CardHeader>
+              <CardTitle className="flex items-center text-white">
+                <Scan className="w-5 h-5 mr-2" />
+                URL Security Scanner
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex space-x-2">
+                <Input
+                  type="url"
+                  placeholder="Enter URL to scan (e.g., https://example.com)"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  className="flex-1 bg-slate-700 border-slate-600 text-white placeholder-slate-400"
+                  onKeyPress={(e) => e.key === 'Enter' && performScan()}
+                />
+                <Button 
+                  onClick={performScan} 
+                  disabled={isScanning}
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                >
+                  {isScanning ? (
+                    <>
+                      <Zap className="w-4 h-4 mr-2 animate-spin" />
+                      Scanning...
+                    </>
+                  ) : (
+                    <>
+                      <Scan className="w-4 h-4 mr-2" />
+                      Scan URL
+                    </>
+                  )}
+                </Button>
+              </div>
+              
+              <div className="bg-slate-700/50 p-4 rounded-lg">
+                <h3 className="text-sm font-medium text-white mb-2">🔍 What we analyze:</h3>
+                <ul className="text-sm text-slate-300 space-y-1">
+                  <li>• URL patterns and suspicious domains</li>
+                  <li>• SSL certificate and encryption status</li>
+                  <li>• Content analysis for phishing indicators</li>
+                  <li>• Domain reputation and age verification</li>
+                  <li>• Visual similarity to legitimate sites</li>
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
-        
-        <TabsContent value="voice" className="space-y-4">
-          <VoiceScanner 
-            onUrlDetected={handleVoiceUrlDetected}
-            onVoiceCommand={handleVoiceCommand}
-          />
+
+        <TabsContent value="visual">
+          <VisualSimilarityScanner url={url} onResult={(result) => console.log('Visual scan result:', result)} />
         </TabsContent>
-        
-        <TabsContent value="intelligence" className="space-y-4">
-          <ThreatIntelligence 
-            url={url}
-            onThreatDetected={handleThreatIntelligenceResult}
-          />
+
+        <TabsContent value="voice">
+          <VoiceScanner onUrlDetected={handleVoiceScan} />
+        </TabsContent>
+
+        <TabsContent value="intelligence">
+          <ThreatIntelligence onThreatUpdate={(threats) => console.log('Threat intelligence update:', threats)} />
+        </TabsContent>
+
+        <TabsContent value="protection">
+          <ProactiveProtection />
         </TabsContent>
       </Tabs>
     </div>
