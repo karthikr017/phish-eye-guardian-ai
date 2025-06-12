@@ -162,6 +162,24 @@ export function ScanForm({ onScanComplete }: ScanFormProps) {
     performScan();
   };
 
+  const handleVoiceCommand = (command: string) => {
+    console.log('Voice command received:', command);
+    if (command === 'scan' && url) {
+      performScan();
+    }
+  };
+
+  const handleThreatDetected = (threats: any[]) => {
+    console.log('Threat intelligence update:', threats);
+    if (threats.length > 0) {
+      toast({
+        title: "Threats Detected",
+        description: `Found ${threats.length} threat(s) in intelligence feeds`,
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="manual" className="w-full">
@@ -244,11 +262,17 @@ export function ScanForm({ onScanComplete }: ScanFormProps) {
         </TabsContent>
 
         <TabsContent value="voice">
-          <VoiceScanner onUrlDetected={handleVoiceScan} />
+          <VoiceScanner 
+            onUrlDetected={handleVoiceScan} 
+            onVoiceCommand={handleVoiceCommand}
+          />
         </TabsContent>
 
         <TabsContent value="intelligence">
-          <ThreatIntelligence onThreatUpdate={(threats) => console.log('Threat intelligence update:', threats)} />
+          <ThreatIntelligence 
+            url={url}
+            onThreatDetected={handleThreatDetected}
+          />
         </TabsContent>
 
         <TabsContent value="protection">
