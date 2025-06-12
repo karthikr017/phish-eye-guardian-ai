@@ -1,10 +1,13 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Search, AlertTriangle } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Loader2, Search, AlertTriangle, Sparkles } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { VisualSimilarityScanner } from './VisualSimilarityScanner';
+import { VoiceScanner } from './VoiceScanner';
+import { ThreatIntelligence } from './ThreatIntelligence';
 import type { ScanResult } from '@/pages/Index';
 
 interface ScanFormProps {
@@ -14,6 +17,7 @@ interface ScanFormProps {
 export function ScanForm({ onScanComplete }: ScanFormProps) {
   const [url, setUrl] = useState('');
   const [isScanning, setIsScanning] = useState(false);
+  const [activeTab, setActiveTab] = useState('basic');
 
   const analyzeUrl = (url: string) => {
     const suspiciousPatterns = [
@@ -119,52 +123,122 @@ export function ScanForm({ onScanComplete }: ScanFormProps) {
     });
   };
 
-  return (
-    <Card className="bg-slate-800/50 border-slate-700">
-      <CardHeader>
-        <CardTitle className="flex items-center text-white">
-          <Search className="w-5 h-5 mr-2" />
-          URL Scanner
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Input
-            placeholder="Enter URL to scan (e.g., https://example.com)"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
-          />
-        </div>
-        
-        <Button 
-          onClick={handleScan} 
-          disabled={isScanning}
-          className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-        >
-          {isScanning ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Analyzing...
-            </>
-          ) : (
-            <>
-              <Search className="w-4 h-4 mr-2" />
-              Scan for Threats
-            </>
-          )}
-        </Button>
+  const handleVoiceUrlDetected = (detectedUrl: string) => {
+    setUrl(detectedUrl);
+    toast({
+      title: "URL Detected",
+      description: `Ready to scan: ${detectedUrl}`,
+    });
+  };
 
-        <div className="bg-slate-700/50 p-3 rounded-lg">
-          <div className="flex items-start space-x-2">
-            <AlertTriangle className="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" />
-            <div className="text-sm text-slate-300">
-              <p className="font-medium text-yellow-500 mb-1">Security Notice</p>
-              <p>This tool analyzes URLs for potential phishing indicators. Results are for educational purposes.</p>
+  const handleVoiceCommand = (command: string) => {
+    if (command === 'scan' && url) {
+      handleScan();
+    }
+  };
+
+  const handleVisualSimilarityResult = (result: any) => {
+    console.log('Visual similarity result:', result);
+    if (result.isPhishing) {
+      toast({
+        title: "Visual Threat Detected!",
+        description: `${Math.round(result.similarityScore * 100)}% similar to ${result.matchedSite}`,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleThreatIntelligenceResult = (threats: any[]) => {
+    console.log('Threat intelligence results:', threats);
+    if (threats.length > 0) {
+      const criticalThreats = threats.filter(t => t.severity === 'critical');
+      if (criticalThreats.length > 0) {
+        toast({
+          title: "Critical Threats Found!",
+          description: `${criticalThreats.length} critical threat(s) detected`,
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card className="bg-slate-800/50 border-slate-700">
+        <CardHeader>
+          <CardTitle className="flex items-center text-white">
+            <Sparkles className="w-5 h-5 mr-2" />
+            AI-Powered Security Scanner
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Input
+              placeholder="Enter URL to scan (e.g., https://example.com)"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              className="bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
+            />
+          </div>
+          
+          <Button 
+            onClick={handleScan} 
+            disabled={isScanning}
+            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+          >
+            {isScanning ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Analyzing...
+              </>
+            ) : (
+              <>
+                <Search className="w-4 h-4 mr-2" />
+                Scan for Threats
+              </>
+            )}
+          </Button>
+
+          <div className="bg-slate-700/50 p-3 rounded-lg">
+            <div className="flex items-start space-x-2">
+              <AlertTriangle className="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-slate-300">
+                <p className="font-medium text-yellow-500 mb-1">Security Notice</p>
+                <p>This tool analyzes URLs for potential phishing indicators. Results are for educational purposes.</p>
+              </div>
             </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3 bg-slate-800/50">
+          <TabsTrigger value="visual" className="text-slate-300">Visual AI</TabsTrigger>
+          <TabsTrigger value="voice" className="text-slate-300">Voice Scan</TabsTrigger>
+          <TabsTrigger value="intelligence" className="text-slate-300">Threat Intel</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="visual" className="space-y-4">
+          <VisualSimilarityScanner 
+            url={url} 
+            onResult={handleVisualSimilarityResult}
+          />
+        </TabsContent>
+        
+        <TabsContent value="voice" className="space-y-4">
+          <VoiceScanner 
+            onUrlDetected={handleVoiceUrlDetected}
+            onVoiceCommand={handleVoiceCommand}
+          />
+        </TabsContent>
+        
+        <TabsContent value="intelligence" className="space-y-4">
+          <ThreatIntelligence 
+            url={url}
+            onThreatDetected={handleThreatIntelligenceResult}
+          />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
