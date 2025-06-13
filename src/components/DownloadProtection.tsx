@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -139,7 +138,20 @@ export function DownloadProtection() {
       const response = await originalFetch.apply(this, args);
       
       if (response.headers.get('content-disposition')?.includes('attachment')) {
-        const url = typeof args[0] === 'string' ? args[0] : args[0].url;
+        // Properly extract URL from different input types
+        let url: string;
+        const input = args[0];
+        
+        if (typeof input === 'string') {
+          url = input;
+        } else if (input instanceof URL) {
+          url = input.toString();
+        } else if (input instanceof Request) {
+          url = input.url;
+        } else {
+          url = 'unknown';
+        }
+        
         const filename = response.headers.get('content-disposition')?.split('filename=')[1]?.replace(/"/g, '') || 'download';
         
         const { riskScore, threats, fileType } = analyzeDownload(filename, url);
