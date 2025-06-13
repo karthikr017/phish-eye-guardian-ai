@@ -3,9 +3,10 @@ import { useState } from 'react';
 import { ClipboardMonitor } from './ClipboardMonitor';
 import { BackgroundScanner } from './BackgroundScanner';
 import { RealtimeNotifications } from './RealtimeNotifications';
-import { UrlInterceptor } from './UrlInterceptor';
+import { BrowserNavigationGuard } from './BrowserNavigationGuard';
+import { DownloadProtection } from './DownloadProtection';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield, Activity, Bell, Link, Zap } from 'lucide-react';
+import { Shield, Activity, Bell, Globe, Download, Zap, Database } from 'lucide-react';
 
 export function ProactiveProtection() {
   const [threatStats, setThreatStats] = useState({
@@ -45,7 +46,7 @@ export function ProactiveProtection() {
         <CardHeader>
           <CardTitle className="flex items-center text-white">
             <Shield className="w-6 h-6 mr-2 text-blue-400" />
-            Proactive Protection Dashboard
+            Real-Time Protection Dashboard
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -64,57 +65,76 @@ export function ProactiveProtection() {
             </div>
           </div>
           
-          <div className="mt-4 p-3 bg-slate-800/50 rounded-lg">
+          <div className="mt-4 p-3 bg-green-900/30 border border-green-500/30 rounded-lg">
             <div className="flex items-center space-x-2 text-green-400">
               <Zap className="w-4 h-4" />
-              <span className="font-medium">Real-time Protection Active</span>
+              <span className="font-medium">REAL Protection Systems Active</span>
             </div>
             <p className="text-sm text-slate-300 mt-1">
-              All protection systems are running and monitoring for threats across your device.
+              Actual browser monitoring, download scanning, and clipboard protection running live.
             </p>
           </div>
         </CardContent>
       </Card>
 
-      {/* Protection Components Grid */}
-      <div className="grid lg:grid-cols-2 gap-6">
-        <ClipboardMonitor onThreatDetected={handleClipboardThreat} />
-        <BackgroundScanner onThreatDetected={handleThreatDetected} />
-        <RealtimeNotifications />
-        <UrlInterceptor onUrlBlocked={handleUrlBlocked} />
+      {/* Real Protection Components */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-white flex items-center">
+          <Database className="w-5 h-5 mr-2 text-green-500" />
+          REAL Protection Systems
+        </h3>
+        
+        <div className="grid lg:grid-cols-2 gap-6">
+          <ClipboardMonitor onThreatDetected={handleClipboardThreat} />
+          <BrowserNavigationGuard />
+          <DownloadProtection />
+        </div>
       </div>
 
-      {/* Feature Highlights */}
+      {/* Simulated Components */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-white flex items-center">
+          <Activity className="w-5 h-5 mr-2 text-blue-500" />
+          Demo/Simulation Systems
+        </h3>
+        
+        <div className="grid lg:grid-cols-2 gap-6">
+          <BackgroundScanner onThreatDetected={handleThreatDetected} />
+          <RealtimeNotifications />
+        </div>
+      </div>
+
+      {/* Feature Status Grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-slate-800/30 border-slate-700">
+        <Card className="bg-green-900/20 border-green-500/30">
           <CardContent className="p-4 text-center">
-            <Activity className="w-8 h-8 mx-auto mb-2 text-blue-500" />
+            <Activity className="w-8 h-8 mx-auto mb-2 text-green-500" />
             <h3 className="font-medium text-white mb-1">Clipboard Monitor</h3>
-            <p className="text-xs text-slate-400">Scans copied URLs automatically</p>
+            <p className="text-xs text-green-400">REAL - Active Protection</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-green-900/20 border-green-500/30">
+          <CardContent className="p-4 text-center">
+            <Globe className="w-8 h-8 mx-auto mb-2 text-green-500" />
+            <h3 className="font-medium text-white mb-1">Navigation Guard</h3>
+            <p className="text-xs text-green-400">REAL - Browser Protection</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-green-900/20 border-green-500/30">
+          <CardContent className="p-4 text-center">
+            <Download className="w-8 h-8 mx-auto mb-2 text-green-500" />
+            <h3 className="font-medium text-white mb-1">Download Scanner</h3>
+            <p className="text-xs text-green-400">REAL - File Protection</p>
           </CardContent>
         </Card>
         
         <Card className="bg-slate-800/30 border-slate-700">
           <CardContent className="p-4 text-center">
-            <Shield className="w-8 h-8 mx-auto mb-2 text-purple-500" />
-            <h3 className="font-medium text-white mb-1">Background Scanner</h3>
-            <p className="text-xs text-slate-400">Continuous protection while you work</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-slate-800/30 border-slate-700">
-          <CardContent className="p-4 text-center">
-            <Bell className="w-8 h-8 mx-auto mb-2 text-orange-500" />
-            <h3 className="font-medium text-white mb-1">Real-time Alerts</h3>
-            <p className="text-xs text-slate-400">Instant threat notifications</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-slate-800/30 border-slate-700">
-          <CardContent className="p-4 text-center">
-            <Link className="w-8 h-8 mx-auto mb-2 text-green-500" />
-            <h3 className="font-medium text-white mb-1">URL Interceptor</h3>
-            <p className="text-xs text-slate-400">Blocks malicious links before access</p>
+            <Bell className="w-8 h-8 mx-auto mb-2 text-blue-500" />
+            <h3 className="font-medium text-white mb-1">App Monitoring</h3>
+            <p className="text-xs text-slate-400">Demo - Requires Mobile App</p>
           </CardContent>
         </Card>
       </div>
